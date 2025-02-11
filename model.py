@@ -1,6 +1,13 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.datasets import mnist
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+from model import model
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Load the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -32,8 +39,6 @@ model.fit(x_train, y_train, epochs=5, batch_size=64, validation_split=0.1)
 test_loss, test_acc = model.evaluate(x_test, y_test)
 print(f'Test accuracy: {test_acc}')
 
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
 # Create an ImageDataGenerator for data augmentation
 datagen = ImageDataGenerator(
     rotation_range=10,
@@ -46,36 +51,23 @@ datagen = ImageDataGenerator(
 # Fit the generator on the training data
 datagen.fit(x_train)
 
-from tensorflow.keras.callbacks import ModelCheckpoint
-
 # Create a checkpoint callback
 checkpoint = ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True)
-
-from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 # Create a learning rate scheduler
 lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-6)
 
 # Train the model with data augmentation and callbacks
-model.fit(datagen.flow(x_train, y_train, batch_size=64),
-          epochs=50,
-          validation_data=(x_test, y_test),
-          callbacks=[checkpoint, lr_scheduler])
+model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), callbacks=[checkpoint, lr_scheduler])
 
 model.save('mnist_model.h5')
 loaded_model = tf.keras.models.load_model('mnist_model.h5')
 predictions = loaded_model.predict(x_test)
 
-import numpy as np
-import matplotlib.pyplot as plt
 def display_prediction(index): plt.imshow(x_test[index].reshape(28, 28), cmap='gray') 
 plt.title(f'Predicted: {np.argmax(predictions[index])}, Actual: {np.argmax(y_test[index])}') 
 plt.axis('off') 
 for i in range(5): display_prediction(i)
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-from model import model
 
 # Make predictions
 y_pred = model.predict(x_test)
@@ -94,10 +86,7 @@ plt.title('Confusion Matrix')
 plt.show()
 
 # Assuming you saved the history of the training process
-history = model.fit(datagen.flow(x_train, y_train, batch_size=64),
-                    epochs=50,
-                    validation_data=(x_test, y_test),
-                    callbacks=[checkpoint, lr_scheduler])
+history = model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), callbacks=[checkpoint, lr_scheduler])
 
 # Plot training & validation accuracy values
 plt.figure(figsize=(12, 4))

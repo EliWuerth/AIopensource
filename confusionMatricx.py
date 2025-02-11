@@ -1,6 +1,16 @@
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 from model import model
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+def display_prediction(index): plt.imshow(x_test[index].reshape(28, 28), cmap='gray') 
+plt.title(f'Predicted: {np.argmax(predictions[index])}, Actual: {np.argmax(y_test[index])}') 
+plt.axis('off') 
+for i in range(5): display_prediction(i)
+
+
 
 # Make predictions
 y_pred = model.predict(x_test)
@@ -19,10 +29,7 @@ plt.title('Confusion Matrix')
 plt.show()
 
 # Assuming you saved the history of the training process
-history = model.fit(datagen.flow(x_train, y_train, batch_size=64),
-                    epochs=50,
-                    validation_data=(x_test, y_test),
-                    callbacks=[checkpoint, lr_scheduler])
+history = model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), callbacks=[checkpoint, lr_scheduler])
 
 # Plot training & validation accuracy values
 plt.figure(figsize=(12, 4))
